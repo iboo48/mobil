@@ -103,7 +103,7 @@ function buildMahallePopup(props) {
       const tipText = k.kisitlamaTipi?.includes('Koruma') ? '🔴 Koruma Bölgesi' : '🟠 Gözetim Bölgesi';
       html += `<div class="badge ${tipClass}">${tipText}</div>`;
       html += `<div class="detail-row"><span>Hastalık</span><span>${k.hastalik || '-'}</span></div>`;
-      html += `<div class="detail-row"><span>Başlangıç</span><span>${k.baslangicTarihi || '-'}</span></div>`;
+      html += `<div class="detail-row"><span>Başlangıç</span><span>${formatTarih(k.baslangicTarihi)}</span></div>`;
     });
   } else {
     html += `<div class="badge" style="background:rgba(71,85,105,0.2);color:#94a3b8;border:1px solid rgba(71,85,105,0.4)">✅ Kısıtlama Yok</div>`;
@@ -222,7 +222,6 @@ export function loadHastalikMarkers() {
         <div class="detail-row"><span>İlçe</span><span>${h.ilce}</span></div>
         <div class="detail-row"><span>Durum</span><span>${h.durum}</span></div>
         <div class="detail-row"><span>Çıkış Tarihi</span><span>${cikisTarihiStr}</span></div>
-        <div class="detail-row"><span>Son Ziyaret</span><span>${formatTarih(h.sonZiyaretTarihi)}</span></div>
         <div class="detail-row"><span>Bildirim No</span><span>${h.bildirimNo}</span></div>
       </div>
     `;
