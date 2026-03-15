@@ -26,17 +26,16 @@ function hideLoading() {
   el.classList.add('fade-out');
   setTimeout(() => el.remove(), 500);
 }
-
 // İstatistik pillerini güncelle
-function updateStats() {
-  const stats = getStats();
+function updateStats(filteredStats = null) {
+  const stats = filteredStats || getStats();
   const karStat = document.getElementById('stat-karantina');
   const hasStat = document.getElementById('stat-hastalik');
   if (karStat) karStat.textContent = `${stats.karantinaCount} Karantina Mahalle`;
   if (hasStat) hasStat.textContent = `${stats.hastalikCount} Hastalık Mihrakı`;
   
   const guncelleme = getGuncelleme();
-  if (guncelleme) {
+  if (guncelleme && !filteredStats) {
     const el = document.getElementById('guncelleme');
     if (el) el.textContent = `Son güncelleme: ${guncelleme}`;
   }
@@ -281,8 +280,20 @@ function bindNavButtons() {
       } else if (b.url) {
         window.open(b.url, '_blank');
       } else if (b.action === 'notif') {
-        const granted = await requestNotificationPermission();
-        updateNotifButton(granted);
+        const currentStatus = getNotificationStatus();
+        if (currentStatus === 'granted') {
+          // Zaten izin verilmişse test uyarısı gönder (kullanıcıya çalıştığını kanıtla)
+          import('./notify.js').then(m => {
+            m.sendNotification('🔔 Bildirimler Aktif', 'Hastalık haritası bildirimleriniz başarıyla çalışıyor.');
+            m.showToast('Test bildirimi gönderildi', 'success');
+          });
+        } else {
+          const granted = await requestNotificationPermission();
+          updateNotifButton(granted);
+          if (granted) {
+             import('./notify.js').then(m => m.sendNotification('✅ Bildirimler Açıldı', 'Karantina uyarılarını artık alacaksınız.'));
+          }
+        }
       } else if (b.action === 'install') {
         if (deferredPrompt) {
           deferredPrompt.prompt();
@@ -300,6 +311,7 @@ function bindNavButtons() {
 // Bildirim butonu metnini ve stilini güncelle
 function updateNotifButton(isGranted = null) {
   const btn = document.getElementById('btn-allow-notif');
+  const helpText = document.getElementById('notif-help-text');
   if (!btn) return;
 
   const status = isGranted === true ? 'granted' : (isGranted === false ? 'denied' : getNotificationStatus());
@@ -307,12 +319,15 @@ function updateNotifButton(isGranted = null) {
   if (status === 'granted') {
     btn.textContent = '🔔 Bildirimler: AKTİF';
     btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+    if (helpText) helpText.style.display = 'block';
   } else if (status === 'denied') {
-    btn.textContent = '🔕 Bildirimler: KAPALI (Engellendi)';
+    btn.textContent = '🔕 Bildirimler: ENGELLENDİ';
     btn.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
+    if (helpText) helpText.style.display = 'block';
   } else {
     btn.textContent = '🔔 Bildirimleri Etkinleştir';
     btn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+    if (helpText) helpText.style.display = 'none';
   }
 }
 
@@ -370,7 +385,11 @@ async function init() {
     if (filterSelect) {
       filterSelect.addEventListener('change', (e) => {
         if (!isMapReady) return;
-        applyDiseaseFilter(e.target.value);
+        const counts = applyDiseaseFilter(e.target.value);
+        updateStats({
+          karantinaCount: counts.mahalleCount,
+          hastalikCount: counts.markerCount
+        });
         showToast(`${e.target.value === 'ALL' ? 'Tüm hastalıklar' : e.target.value} filtrelendi`, 'info', 1500);
       });
     }

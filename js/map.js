@@ -249,8 +249,11 @@ export function loadHastalikMarkers() {
  * ─── Filtreleme İşlemleri ──────────────────────────────────────────
  */
 export function applyDiseaseFilter(filterValue) {
-  if (!map) return;
+  if (!map) return { markerCount: 0, mahalleCount: 0 };
   const filter = filterValue === 'ALL' ? '' : filterValue.toUpperCase();
+  
+  let markerCount = 0;
+  let mahalleCount = 0;
 
   // 1. Markerları Filtrele
   if (markerLayer) {
@@ -267,6 +270,7 @@ export function applyDiseaseFilter(filterValue) {
 
         if (match) {
           layer.getElement()?.style.setProperty('display', 'block');
+          markerCount++;
         } else {
           layer.getElement()?.style.setProperty('display', 'none');
         }
@@ -286,7 +290,10 @@ export function applyDiseaseFilter(filterValue) {
         return h.includes(filter);
       });
 
-      if (match) return getMahalleStil(feature);
+      if (match) {
+        mahalleCount++;
+        return getMahalleStil(feature);
+      }
       return { fillColor: '#334155', fillOpacity: 0.1, color: '#475569', weight: 0.8, opacity: 0.6 };
     });
   }
@@ -313,6 +320,8 @@ export function applyDiseaseFilter(filterValue) {
       }
     });
   }
+
+  return { markerCount, mahalleCount };
 }
 export function getMap() { return map; }
 

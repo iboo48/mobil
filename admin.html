@@ -349,7 +349,7 @@
             }
 
             if (kisitlamalar.length > 0) {
-              f.properties.karantina = kisitlamalar;
+          f.properties.karantina = kisitlamalar;
               f.properties.karantinaAktif = true;
               f.properties.karantinaTipi = kisitlamalar.find(kx => kx.kisitlamaTipi.includes('Koruma')) ? 'koruma' : 'gozetime';
               count++;
@@ -373,34 +373,42 @@
 
   <!-- ─── Duyuru Yönetimi ─────────────────────────────────────── -->
   <div class="card" style="margin-top:24px">
-    <h3>📢 Duyuru Yönetimi</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
+      <h3 style="margin:0">📢 Duyuru Yönetimi</h3>
+      <div style="display:flex; gap:8px">
+        <button class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:var(--bg-primary); border:1px solid var(--border)" onclick="duyurulariDosyadanYukle()">📂 Dosyadan Yükle</button>
+        <button class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:var(--success)" onclick="duyurulariIndir()">💾 JSON İndir</button>
+      </div>
+    </div>
+    
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
-      Duyurular yerel depolamaya (localStorage) kaydedilir ve ana uygulamada görüntülenir. Tarayıcıyı silmeden kalıcıdır.
+      Duyurular yerel depolamaya (localStorage) kaydedilir. Mevcut verileri görmek için <b>'Dosyadan Yükle'</b> butonuna basın. Düzenleme bittikten sonra <b>'JSON İndir'</b> diyerek dosyayı kaydedin.
     </p>
 
     <!-- Yeni Duyuru Formu -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
-      <input id="dy-baslik" type="text" placeholder="Başlık *" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;outline:none">
-      <textarea id="dy-icerik" rows="3" placeholder="İçerik *" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px; padding:12px; background:var(--bg-primary); border-radius:var(--radius-sm); border:1px solid var(--border)">
+      <h4 style="font-size:13px; margin-bottom:4px">Yeni Duyuru Ekle</h4>
+      <input id="dy-baslik" type="text" placeholder="Başlık *" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;outline:none">
+      <textarea id="dy-icerik" rows="3" placeholder="İçerik *" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <select id="dy-kategori" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+        <select id="dy-kategori" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
           <option value="Genel">Genel</option>
           <option value="Karantina">Karantina</option>
           <option value="Destekleme">Destekleme</option>
           <option value="Aşılama">Aşılama</option>
           <option value="Duyuru">Duyuru</option>
         </select>
-        <select id="dy-oncelik" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+        <select id="dy-oncelik" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
           <option value="">Normal</option>
           <option value="onemli">⚠️ Önemli</option>
           <option value="acil">🚨 Acil</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input id="dy-tarih" type="date" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
-        <input id="dy-link" type="url" placeholder="Link (opsiyonel)" style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+        <input id="dy-tarih" type="date" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+        <input id="dy-link" type="url" placeholder="Link (opsiyonel)" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
       </div>
-      <button class="btn" onclick="duyuruEkle()" id="btn-dy-ekle">➕ Duyuru Ekle</button>
+      <button class="btn" onclick="duyuruEkle()" id="btn-dy-ekle">➕ Listeye Ekle</button>
     </div>
 
     <!-- Mevcut Duyurular -->
@@ -418,11 +426,30 @@
       localStorage.setItem('duyurular', JSON.stringify(list));
     }
 
+    async function duyurulariDosyadanYukle() {
+      if (getDuyurular().length > 0 && !confirm('Mevcut düzenlemeleriniz silinecek ve duyurular.json dosyasındaki veriler yüklenecek. Onaylıyor musunuz?')) return;
+      try {
+        const res = await fetch('./data/duyurular.json');
+        const data = await res.json();
+        saveDuyurular(data);
+        renderDuyurular();
+        alert('Duyurular başarıyla yüklendi.');
+      } catch (e) {
+        alert('Hata: duyurular.json dosyası bulunamadı veya okunamadı.');
+      }
+    }
+
+    function duyurulariIndir() {
+      const data = getDuyurular();
+      if (data.length === 0) { alert('İndirilecek duyuru yok!'); return; }
+      downloadJSON(data, 'duyurular.json');
+    }
+
     function renderDuyurular() {
       const liste = document.getElementById('dy-liste');
       const data = getDuyurular();
       if (data.length === 0) {
-        liste.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0">Henüz duyuru eklenmedi.</div>';
+        liste.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0; text-align:center">Liste boş. Lütfen "Dosyadan Yükle" diyerek mevcut verileri çekin veya yeni ekleyin.</div>';
         return;
       }
       liste.innerHTML = data.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).map(d=>`

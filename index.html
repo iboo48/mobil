@@ -575,8 +575,44 @@
       </div>
 
       <!-- Lejant Paneli -->
-      <nav id="legend" aria-label="Harita lejandı">
-        <button id="legend-toggle" aria-      </nav>
+      <nav id="legend" class="collapsible-panel" aria-label="Harita lejandı" style="right: 12px; bottom: 84px;">
+        <button id="legend-toggle" class="panel-toggle" aria-expanded="true">
+          <span>Lejant</span>
+          <span class="legend-arrow">▲</span>
+        </button>
+        <div id="legend-body" class="panel-body" style="display:flex; flex-direction:column; gap:6px">
+          <div class="legend-item">
+            <div class="legend-dot koruma"></div>
+            <span>Koruma Bölgesi</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot gozetime"></div>
+            <span>Gözetim Bölgesi</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot normal"></div>
+            <span>Normal Mahalle</span>
+          </div>
+          <div class="legend-item" style="margin-top:4px; padding-top:6px; border-top:1px solid #334155">
+            <div style="width:12px; height:12px; border-radius:50%; background:#3b82f6; flex-shrink:0"></div>
+            <span>Konumunuz</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Hastalık Filtre Paneli -->
+      <nav id="disease-filter-panel" class="collapsible-panel" aria-label="Hastalık filtresi"
+        style="left: 12px; bottom: 84px; display:none">
+        <button id="filter-toggle" class="panel-toggle" aria-expanded="false">
+          <span>Hastalık Filtresi</span>
+          <span class="panel-arrow">▼</span>
+        </button>
+        <div id="filter-body" class="panel-body" style="display:none">
+          <select id="disease-filter" aria-label="Hastalık Seçin">
+            <option value="ALL">Tüm Hastalıklar</option>
+          </select>
+        </div>
+      </nav>
     </main>
 
     <!-- Bilgi & Ayarlar View -->
@@ -595,9 +631,12 @@
               style="background: linear-gradient(135deg, #22c55e, #16a34a); width:100%; margin-bottom:10px; display:none;">💾
               Şimdi Yükle</button>
           </div>
-          <div id="pwa-guide-ios" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:10px; margin-top:10px;">
-            <p style="font-size:12px; color:#94a3b8;"><strong>iPhone/iPad için:</strong> Tarayıcıdaki <b>'Paylaş'</b> <span
-                style="font-size:16px">⎋</span> butonuna basın ve ardından <b>'Ana Ekrana Ekle'</b> seçeneğini seçin.</p>
+          <div id="pwa-guide-ios"
+            style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:10px; margin-top:10px;">
+            <p style="font-size:12px; color:#94a3b8;"><strong>iPhone/iPad için:</strong> Tarayıcıdaki <b>'Paylaş'</b>
+              <span style="font-size:16px">⎋</span> butonuna basın ve ardından <b>'Ana Ekrana Ekle'</b> seçeneğini
+              seçin.
+            </p>
           </div>
         </div>
 
@@ -636,98 +675,100 @@
         </div>
       </div>
     </section>
-         <select id="disease-filter" aria-label="Hastalık Seçin">
-            <option value="ALL">Tüm Hastalıklar</option>
-          </select>
-        </div>
-      </nav>
+    <select id="disease-filter" aria-label="Hastalık Seçin">
+      <option value="ALL">Tüm Hastalıklar</option>
+    </select>
+  </div>
+  </nav>
 
-      </nav>
-            <h3>⚠️ Yasal Uyarı</h3>
-            <p style="font-size:12px; color:#94a3b8; line-height:1.6;">
-              Bu uygulama Muğla İl Tarım ve Orman Müdürlüğü verilerini kullanmaktadır.
-              Veriler bilgilendirme amaçlıdır; resmi işlemler için Müdürlüğümüzle iletişime geçiniz.
-            </p>
-          </div>
-          <!--
+  </nav>
+  <h3>⚠️ Yasal Uyarı</h3>
+  <p style="font-size:12px; color:#94a3b8; line-height:1.6;">
+    Bu uygulama Muğla İl Tarım ve Orman Müdürlüğü verilerini kullanmaktadır.
+    Veriler bilgilendirme amaçlıdır; resmi işlemler için Müdürlüğümüzle iletişime geçiniz.
+  </p>
+  </div>
+  <!--
           <div class="bilgi-card">
             <h3>🔗 Bağlantılar</h3>
             <a href="./admin.html" class="duyuru-link">➜ Yönetim Paneli (Veri Güncelleme)</a>
           </div>
         -->
-          <div style="text-align:center; padding:20px; color:#64748b; font-size:11px;">
-            © 2026 Muğla İl Tarım ve Orman Müdürlüğü
-          </div>
-        </div>
-      </section>
-    </main>
+  <div style="text-align:center; padding:20px; color:#64748b; font-size:11px;">
+    © 2026 Muğla İl Tarım ve Orman Müdürlüğü
+  </div>
+  </div>
+  </section>
+  </main>
 
-    <!-- ─── Duyurular View (ANA EKRAN) ──────────────────────────────── -->
-    <section id="view-duyurular" class="view-section active" data-view="duyurular">
-      <!-- Giriş / Hızlı Erişim Hero -->
-      <div class="hero-section">
-        <div class="hero-content">
-          <h2>Hoş Geldiniz</h2>
-          <p>Muğla İl Tarım ve Orman Müdürlüğü dijital hizmet paneli.</p>
-          <div class="hero-buttons">
-            <button id="hero-btn-harita" class="hero-btn">
-              <span class="icon">🗺️</span>
-              <span class="text">Hastalık Haritası</span>
-            </button>
-            <button id="hero-btn-destek" class="hero-btn primary">
-              <span class="icon">💰</span>
-              <span class="text">Destekleme Sorgula</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="duyuru-baslik-bar" style="margin-top:10px">
-        <span style="font-size:22px">📢</span>
-        <h2>Güncel Duyurular</h2>
-      </div>
-      <div id="duyuru-list">
-        <div class="duyuru-bos">Duyurular yükleniyor...</div>
-      </div>
-    </section>
-
-    <!-- ─── Küpe Sorgulama View ─────────────────────────────── -->
-    <section id="view-kupe-sorgulama" class="view-section" data-view="kupe-sorgulama">
-      <div class="webview-toolbar">
-        <span style="font-size:16px">🏷️</span>
-        <div class="wv-url">e-Devlet Hayvan Sorgulama</div>
-      </div>
-      <div class="webview-blocked">
-        <div class="wv-icon">🐮</div>
-        <h3>Küpe ile Hayvan Sorgulama</h3>
-        <p>
-          e-Devlet kapısı üzerinden küçükbaş ve büyükbaş hayvanlarınızı küpe numaraları ile sorgulayabilirsiniz.
-          Güvenlik nedeniyle bu işlemler harici tarayıcıda açılmalıdır.
-        </p>
-        <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px;">
-          <button id="btn-kupe-buyukbas" class="wv-ext-btn">
-            🐄 Büyükbaş Küpe Sorgula
+  <!-- ─── Duyurular View (ANA EKRAN) ──────────────────────────────── -->
+  <section id="view-duyurular" class="view-section active" data-view="duyurular">
+    <!-- Giriş / Hızlı Erişim Hero -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h2>Hoş Geldiniz</h2>
+        <p>Muğla İl Tarım ve Orman Müdürlüğü dijital hizmet paneli.</p>
+        <div class="hero-buttons">
+          <button id="hero-btn-harita" class="hero-btn">
+            <span class="icon">🗺️</span>
+            <span class="text">Hastalık Haritası</span>
           </button>
-          <button id="btn-kupe-kucukbas" class="wv-ext-btn"
-            style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 12px rgba(6,182,212,.4);">
-            🐑 Küçükbaş Küpe Sorgula
+          <button id="hero-btn-destek" class="hero-btn primary">
+            <span class="icon">💰</span>
+            <span class="text">Destekleme Sorgula</span>
           </button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- ─── Destekleme Sorgulama WebView ──────────────────────────── -->
-    <section id="view-destekleme" class="view-section" data-view="destekleme">
+    <div class="duyuru-baslik-bar" style="margin-top:10px">
+      <span style="font-size:22px">📢</span>
+      <h2>Güncel Duyurular</h2>
+    </div>
+    <div id="duyuru-list">
+      <div class="duyuru-bos">Duyurular yükleniyor...</div>
+    </div>
+  </section>
+
+  <!-- ─── Küpe Sorgulama View ─────────────────────────────── -->
+  <section id="view-kupe-sorgulama" class="view-section" data-view="kupe-sorgulama">
+    <div class="webview-toolbar">
+      <span style="font-size:16px">🏷️</span>
+      <div class="wv-url">e-Devlet Hayvan Sorgulama</div>
+    </div>
+    <div class="webview-blocked">
+      <div class="wv-icon">🐮</div>
+      <h3>Küpe ile Hayvan Sorgulama</h3>
+      <p>
+        e-Devlet kapısı üzerinden küçükbaş ve büyükbaş hayvanlarınızı küpe numaraları ile sorgulayabilirsiniz.
+        Güvenlik nedeniyle bu işlemler harici tarayıcıda açılmalıdır.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px;">
+        <button id="btn-kupe-buyukbas" class="wv-ext-btn">
+          🐄 Büyükbaş Küpe Sorgula
+        </button>
+        <button id="btn-kupe-kucukbas" class="wv-ext-btn"
+          style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 12px rgba(6,182,212,.4);">
+          🐑 Küçükbaş Küpe Sorgula
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Destekleme Sorgulama WebView ──────────────────────────── -->
+  <section id="view-destekleme" class="view-section" data-view="destekleme" style="background:#0f172a">
+    <!--
       <div class="webview-toolbar">
         <span style="font-size:16px">💰</span>
         <div class="wv-url">muglatarim.github.io/desteklemeler</div>
         <button id="btn-wv-destek-open" class="wv-open-btn">↗ Aç</button>
       </div>
-      <iframe id="destekleme-frame" class="webview-frame" src="about:blank" title="Destekleme Sorgulama"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"
-        style="width:100%; height:100%; border:none;">
-      </iframe>
-    </section>
+    -->
+    <iframe id="destekleme-frame" class="webview-frame" src="about:blank" title="Destekleme Sorgulama"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"
+      style="width:100%; height:100%; border:none; background:#0f172a;">
+    </iframe>
+  </section>
 
   </div><!-- #app -->
 
