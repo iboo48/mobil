@@ -16,8 +16,8 @@
   <title>Muğla Tarım – Hastalık Haritası</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/gthbLogo.png">
+  <link rel="icon" type="image/png" href="./icons/gthbLogo.png">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -576,82 +576,73 @@
 
       <!-- Lejant Paneli -->
       <nav id="legend" aria-label="Harita lejandı">
-        <button id="legend-toggle" aria-expanded="true">
-          <span>Lejant</span>
-          <span class="legend-arrow">▲</span>
-        </button>
-        <div id="legend-body" style="display:flex;flex-direction:column;gap:6px">
-          <div class="legend-item">
-            <div class="legend-dot koruma"></div>
-            <span>Koruma Bölgesi</span>
+        <button id="legend-toggle" aria-      </nav>
+    </main>
+
+    <!-- Bilgi & Ayarlar View -->
+    <section id="view-bilgi" class="view-section" data-view="bilgi">
+      <div class="bilgi-container" style="padding: 16px;">
+        <div class="bilgi-header">
+          <span class="icon" style="font-size: 24px;">ℹ️</span>
+          <h2>Uygulama Bilgileri</h2>
+        </div>
+
+        <div class="bilgi-card" id="pwa-install-card">
+          <h3>📱 Uygulamayı Yükle</h3>
+          <div id="pwa-status-supported">
+            <p>Hızlı erişim için uygulamayı ana ekranınıza bir uygulama gibi yükleyin.</p>
+            <button id="btn-pwa-install" class="wv-ext-btn"
+              style="background: linear-gradient(135deg, #22c55e, #16a34a); width:100%; margin-bottom:10px; display:none;">💾
+              Şimdi Yükle</button>
           </div>
-          <div class="legend-item">
-            <div class="legend-dot gozetime"></div>
-            <span>Gözetim Bölgesi</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot normal"></div>
-            <span>Normal Mahalle</span>
-          </div>
-          <div class="legend-item" style="margin-top:4px;padding-top:6px;border-top:1px solid #334155">
-            <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;flex-shrink:0"></div>
-            <span>Konumunuz</span>
+          <div id="pwa-guide-ios" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:10px; margin-top:10px;">
+            <p style="font-size:12px; color:#94a3b8;"><strong>iPhone/iPad için:</strong> Tarayıcıdaki <b>'Paylaş'</b> <span
+                style="font-size:16px">⎋</span> butonuna basın ve ardından <b>'Ana Ekrana Ekle'</b> seçeneğini seçin.</p>
           </div>
         </div>
-      </nav>
 
-      <!-- Hastalık Filtre Paneli (Yeni) -->
-      <nav id="disease-filter-panel" class="collapsible-panel" aria-label="Hastalık filtresi" style="display:none">
-        <button id="filter-toggle" class="panel-toggle" aria-expanded="false">
-          <span>Hastalık Filtresi</span>
-          <span class="panel-arrow">▼</span>
-        </button>
-        <div id="filter-body" class="panel-body" style="display:none">
-          <select id="disease-filter" aria-label="Hastalık Seçin">
+        <div class="bilgi-card">
+          <h3>📢 Bildirim Ayarları</h3>
+          <p>Karantina bölgelerine girdiğinizde sesli uyarı almak için bildirimleri aktif edin.</p>
+          <button id="btn-allow-notif" class="wv-ext-btn">🔔 Bildirimleri Etkinleştir</button>
+        </div>
+
+        <div class="bilgi-card">
+          <h3>📖 Nasıl Kullanılır?</h3>
+          <div class="info-row">
+            <span class="label">1. Adım</span>
+            <span class="value">Haritada mahallelere dokunarak detay bilgisi alın.</span>
+          </div>
+          <div class="info-row">
+            <span class="label">2. Adım</span>
+            <span class="value">"Konumum" butonuna basarak konum takibini başlatın.</span>
+          </div>
+          <div class="info-row">
+            <span class="label">3. Adım</span>
+            <span class="value">Karantina bölgesine girince sesli bildirim alırsınız.</span>
+          </div>
+        </div>
+
+        <div class="bilgi-card">
+          <h3>⚠️ Yasal Uyarı</h3>
+          <p style="font-size:12px; color:#94a3b8; line-height:1.6;">
+            Bu uygulama Muğla İl Tarım ve Orman Müdürlüğü verilerini kullanmaktadır.
+            Veriler bilgilendirme amaçlıdır; resmi işlemler için Müdürlüğümüzle iletişime geçiniz.
+          </p>
+        </div>
+
+        <div style="text-align:center; padding:20px; color:#64748b; font-size:11px;">
+          © 2026 Muğla İl Tarım ve Orman Müdürlüğü
+        </div>
+      </div>
+    </section>
+         <select id="disease-filter" aria-label="Hastalık Seçin">
             <option value="ALL">Tüm Hastalıklar</option>
           </select>
         </div>
       </nav>
 
       </nav>
-
-      <!-- Bilgi & Ayarlar View -->
-      <section id="view-bilgi" class="view-section" data-view="bilgi">
-        <div class="bilgi-container">
-          <div class="bilgi-header">
-            <span class="icon">ℹ️</span>
-            <h2>Uygulama Bilgileri</h2>
-          </div>
-
-          <div class="bilgi-card" id="pwa-install-card" style="display:none">
-            <h3>📱 Uygulamayı Yükle</h3>
-            <p>Hızlı erişim için uygulamayı ana ekranınıza bir uygulama gibi yükleyin.</p>
-            <button id="btn-pwa-install" class="wv-ext-btn" style="background: linear-gradient(135deg, #22c55e, #16a34a);">💾 Uygulama Olarak Yükle</button>
-          </div>
-
-          <div class="bilgi-card">
-            <h3>📢 Bildirim Ayarları</h3>
-            <p>Karantina bölgelerine girdiğinizde sesli uyarı almak için bildirimleri aktif edin.</p>
-            <button id="btn-allow-notif" class="wv-ext-btn">🔔 Bildirimleri Etkinleştir</button>
-          </div>
-
-          <div class="bilgi-card">
-            <h3>📖 Nasıl Kullanılır?</h3>
-            <div class="info-row">
-              <span class="label">1. Adım</span>
-              <span class="value">Haritada mahallelere dokunarak detay bilgisi alın.</span>
-            </div>
-            <div class="info-row">
-              <span class="label">2. Adım</span>
-              <span class="value">"Konumum" butonuna basarak konum takibini başlatın.</span>
-            </div>
-            <div class="info-row">
-              <span class="label">3. Adım</span>
-              <span class="value">Karantina bölgesine girince sesli bildirim alırsınız.</span>
-            </div>
-          </div>
-
-          <div class="bilgi-card">
             <h3>⚠️ Yasal Uyarı</h3>
             <p style="font-size:12px; color:#94a3b8; line-height:1.6;">
               Bu uygulama Muğla İl Tarım ve Orman Müdürlüğü verilerini kullanmaktadır.

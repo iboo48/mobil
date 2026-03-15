@@ -21,6 +21,12 @@ export async function requestNotificationPermission() {
   return false;
 }
 
+// Bildirim durumunu döndür
+export function getNotificationStatus() {
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission; // 'granted', 'denied', 'default'
+}
+
 /**
  * Bildirim gönder:
  * 1. Service Worker kayıtlıysa SW üzerinden göster (arka planda da çalışır)

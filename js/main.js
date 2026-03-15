@@ -4,7 +4,7 @@
 import { loadAllData, getStats, getGuncelleme, getUniqueDiseases } from './data.js';
 import { initMap, loadMahalleLayer, loadHastalikMarkers, toggleZones, applyDiseaseFilter, getMap } from './map.js';
 import { startTracking, stopTracking, isLocationTracking, setGeoLayers } from './location.js';
-import { requestNotificationPermission, showToast, setSwRegistration } from './notify.js';
+import { requestNotificationPermission, showToast, setSwRegistration, getNotificationStatus } from './notify.js';
 
 // Service Worker kaydı
 let swReg = null;
@@ -116,20 +116,20 @@ let deferredPrompt = null;
 
 // PWA Kurulum Yönetimi
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Varsayılan banner'ı engelle (isteğe bağlı, ama butonu göstermek için yakalamalıyız)
+  // Varsayılan banner'ı engelle
   e.preventDefault();
   deferredPrompt = e;
   
-  // Bilgi sekmesindeki kurulum kartını göster
-  const installCard = document.getElementById('pwa-install-card');
-  if (installCard) installCard.style.display = 'block';
+  // Bilgi sekmesindeki kurulum butonu göster
+  const installBtn = document.getElementById('btn-pwa-install');
+  if (installBtn) installBtn.style.display = 'block';
   console.log('[PWA] Kurulum istemi yakalandı.');
 });
 
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
-  const installCard = document.getElementById('pwa-install-card');
-  if (installCard) installCard.style.display = 'none';
+  const installBtn = document.getElementById('btn-pwa-install');
+  if (installBtn) installBtn.style.display = 'none';
   showToast('✅ Uygulama başarıyla yüklendi!', 'success', 3000);
 });
 
@@ -162,13 +162,28 @@ function initTabs() {
         v.classList.toggle('active', v.dataset.view === target);
       });
 
-      // Toolbar bileşenlerini yönet
+      // Toolbar ve Harita bileşenlerini yönet
       const filterCont = document.getElementById('disease-filter-panel');
       const btnLocate = document.getElementById('btn-locate');
+      const mapCont = document.getElementById('map-container');
       const isHaritaVisible = (target === 'harita');
       
       if (filterCont) filterCont.style.display = isHaritaVisible ? 'block' : 'none';
       if (btnLocate) btnLocate.style.display = isHaritaVisible ? 'block' : 'none';
+      
+      // Harita konteynerini (ve Leaflet kontrollerini) gizle/göster
+      if (mapCont) {
+        if (isHaritaVisible) {
+          mapCont.style.visibility = 'visible';
+          mapCont.style.height = 'auto'; // Veya orijinal yüksekliği
+          mapCont.style.position = 'relative';
+        } else {
+          mapCont.style.visibility = 'hidden';
+          mapCont.style.height = '0';
+          mapCont.style.overflow = 'hidden';
+          mapCont.style.position = 'absolute';
+        }
+      }
 
       // Harita sekmesine dönünce Leaflet'i yenile
       if (isHaritaVisible) {
@@ -180,15 +195,23 @@ function initTabs() {
     });
   });
 
-  // BAŞLANGIÇ DURUMU: İlk açılışta harita harici butonları gizle
+  // BAŞLANGIÇ DURUMU: İlk açılışta harita harici butonları ve haritayı gizle
   const initialActiveTab = document.querySelector('.nav-tab.active')?.dataset.tab;
   const isHaritaInitial = initialActiveTab === 'harita';
   
   const filterCont = document.getElementById('disease-filter-panel');
   const btnLocate = document.getElementById('btn-locate');
+  const mapCont = document.getElementById('map-container');
   
   if (filterCont) filterCont.style.display = isHaritaInitial ? 'block' : 'none';
   if (btnLocate) btnLocate.style.display = isHaritaInitial ? 'block' : 'none';
+
+  if (mapCont && !isHaritaInitial) {
+    mapCont.style.visibility = 'hidden';
+    mapCont.style.height = '0';
+    mapCont.style.overflow = 'hidden';
+    mapCont.style.position = 'absolute';
+  }
 }
 
 // Duyuruları yükle
@@ -258,20 +281,39 @@ function bindNavButtons() {
       } else if (b.url) {
         window.open(b.url, '_blank');
       } else if (b.action === 'notif') {
-        const { requestNotificationPermission } = await import('./notify.js');
-        requestNotificationPermission();
+        const granted = await requestNotificationPermission();
+        updateNotifButton(granted);
       } else if (b.action === 'install') {
         if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
           console.log(`[PWA] Kurulum tercihi: ${outcome}`);
           deferredPrompt = null;
-          const installCard = document.getElementById('pwa-install-card');
-          if (installCard) installCard.style.display = 'none';
+          const installBtn = document.getElementById('btn-pwa-install');
+          if (installBtn) installBtn.style.display = 'none';
         }
       }
     });
   });
+}
+
+// Bildirim butonu metnini ve stilini güncelle
+function updateNotifButton(isGranted = null) {
+  const btn = document.getElementById('btn-allow-notif');
+  if (!btn) return;
+
+  const status = isGranted === true ? 'granted' : (isGranted === false ? 'denied' : getNotificationStatus());
+  
+  if (status === 'granted') {
+    btn.textContent = '🔔 Bildirimler: AKTİF';
+    btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+  } else if (status === 'denied') {
+    btn.textContent = '🔕 Bildirimler: KAPALI (Engellendi)';
+    btn.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
+  } else {
+    btn.textContent = '🔔 Bildirimleri Etkinleştir';
+    btn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+  }
 }
 
 // Global scope ReferenceError önleyici (Eski kodlardan kalma hataları engellemek için)
@@ -290,6 +332,7 @@ async function init() {
     initTabs();
     initLegend();
     bindNavButtons();
+    updateNotifButton();
     
     // Yükleme ekranını hemen kapat (UI İskeleti Hazır)
     hideLoading();
