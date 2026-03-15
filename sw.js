@@ -1,9 +1,9 @@
-const CACHE_NAME = 'hastalik-haritasi-v4';
+const CACHE_NAME = 'hastalik-haritasi-v10';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './css/style.css',
-  './js/app.js',
+  './js/main.js',
   './js/map.js',
   './js/location.js',
   './js/data.js',
@@ -14,17 +14,17 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
 ];
 
-// Install: statik dosyaları cache'e al
+// ── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
-    })
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err))
+    )
   );
   self.skipWaiting();
 });
 
-// Activate: eski cache'leri temizle ve yeni worker'ı hemen aktif et
+// ── Activate ─────────────────────────────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -34,11 +34,9 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: Data JSON'ları için Network-First, diğerleri için Cache-First
+// ── Fetch: Network-First for data/js, Cache-First for rest ───────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  
-  // Data JSON'ları veya JS dosyaları: her zaman ağdan al (güncel veri/kod önceliği)
   if (url.pathname.includes('/data/') || (url.pathname.endsWith('.js') && url.pathname.includes('/js/'))) {
     event.respondWith(
       fetch(event.request)
@@ -51,9 +49,63 @@ self.addEventListener('fetch', event => {
     );
     return;
   }
-
-  // Diğer statik dosyalar: cache-first
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
+});
+
+// ── Push bildirimi al (sunucu tarafından gönderildiğinde) ────────────────────
+self.addEventListener('push', event => {
+  let data = { title: '⚠️ Karantina Uyarısı', body: 'Karantina bölgesine girdiniz!' };
+  if (event.data) {
+    try { data = event.data.json(); } catch { data.body = event.data.text(); }
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: './icons/icon-192.png',
+      badge: './icons/icon-192.png',
+      tag: 'karantina-uyari',
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 600],
+      silent: false,
+      data: { url: './' }
+    })
+  );
+});
+
+// ── Konum kontrolü ve bildirim gönderme (app client'tan mesaj alır) ──────────
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'KARANTINA_ALERT') {
+    const { mahalle, ilce, kisitlamaTipi, hastalik } = event.data;
+    self.registration.showNotification(`⚠️ Karantina: ${mahalle}`, {
+      body: `${kisitlamaTipi} bölgesine girdiniz.\nHastalık: ${hastalik}\nİlçe: ${ilce}`,
+      icon: './icons/icon-192.png',
+      badge: './icons/icon-192.png',
+      tag: `karantina-${mahalle}`,
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 600],
+      silent: false,
+      renotify: true,
+      data: { url: './' }
+    });
+  }
+});
+
+// ── Bildirime tıklandığında uygulamayı aç ────────────────────────────────────
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Zaten açık pencere varsa odaklan
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Yoksa yeni pencere aç
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
   );
 });

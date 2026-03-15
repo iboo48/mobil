@@ -187,8 +187,12 @@ export function loadMahalleLayer(onMahalleClick) {
 // Hastalık mihrakı markerlarını yükle
 export function loadHastalikMarkers() {
   const hastaliklar = getHastaliklar();
-  markerLayer = L.layerGroup().addTo(map);
-  zoneLayer   = L.layerGroup(); // başlangıçta haritada değil
+  // Temizle (varsa)
+  if (markerLayer) markerLayer.clearLayers();
+  else markerLayer = L.layerGroup().addTo(map);
+
+  if (zoneLayer) zoneLayer.clearLayers();
+  else zoneLayer = L.layerGroup();
 
   hastaliklar.forEach(h => {
     if (!h.enlem || !h.boylam) return;
@@ -197,9 +201,8 @@ export function loadHastalikMarkers() {
     const hayvan    = getHayvanIkon(h.tur);
     const cikisTarihiStr = formatTarih(h.cikisTarihi);
 
-    // ── Marker ikonu ──────────────────────────────────────────
     const icon = L.divIcon({
-      className: '',
+      className: 'hastalik-marker-wrapper',
       html: `<div style="
         width:32px;height:32px;border-radius:50%;
         background:${renk}22;border:2px solid ${renk};
@@ -212,7 +215,6 @@ export function loadHastalikMarkers() {
       iconAnchor: [16, 16],
     });
 
-    // ── Popup ────────────────────────────────────────────────
     const popupHtml = `
       <div class="popup-content">
         <h3>${hayvan.emoji} Hastalık Mihrakı</h3>
@@ -226,73 +228,121 @@ export function loadHastalikMarkers() {
       </div>
     `;
 
-    // ── 3 km ve 10 km çemberleri ─────────────────────────────
-    // Leaflet Circle metre cinsinden radius alır
-    const circle3km = L.circle([h.enlem, h.boylam], {
-      radius: 3000,
-      color: renk,
-      weight: 1.5,
-      opacity: 0.85,
-      fillColor: renk,
-      fillOpacity: 0.12,
-      dashArray: '5,5',
-    });
-    const circle10km = L.circle([h.enlem, h.boylam], {
-      radius: 10000,
-      color: renk,
-      weight: 1,
-      opacity: 0.45,
-      fillColor: renk,
-      fillOpacity: 0.05,
-      dashArray: '8,8',
-    });
+    // Marker'ı metadata ile oluştur
+    const m = L.marker([h.enlem, h.boylam], { 
+      icon,
+      hastalik: h.hastalik?.toUpperCase() 
+    }).bindPopup(popupHtml, { maxWidth: 300 });
 
+    m.addTo(markerLayer);
+
+    // Çemberler (zones)
+    const circle3km = L.circle([h.enlem, h.boylam], { radius: 3000, color: renk, weight: 1.5, opacity: 0.85, fillColor: renk, fillOpacity: 0.12, dashArray: '5,5', hastalik: h.hastalik?.toUpperCase() });
+    const circle10km = L.circle([h.enlem, h.boylam], { radius: 10000, color: renk, weight: 1, opacity: 0.45, fillColor: renk, fillOpacity: 0.05, dashArray: '8,8', hastalik: h.hastalik?.toUpperCase() });
+    
     circle3km.addTo(zoneLayer);
     circle10km.addTo(zoneLayer);
-
-    // Çember etiketleri (küçük tooltip)
-    circle3km.bindTooltip('3 km', { permanent: false, className: 'zone-tooltip', opacity: 0.85 });
-    circle10km.bindTooltip('10 km', { permanent: false, className: 'zone-tooltip', opacity: 0.85 });
-
-    L.marker([h.enlem, h.boylam], { icon })
-      .bindPopup(popupHtml, { maxWidth: 300 })
-      .addTo(markerLayer);
   });
 }
 
-// Çember katmanını aç/kapat
-export function toggleZones() {
-  if (!zoneLayer || !map) return false;
-  if (zonesVisible) {
-    map.removeLayer(zoneLayer);
-    zonesVisible = false;
-  } else {
-    zoneLayer.addTo(map);
-    zonesVisible = true;
+/**
+ * ─── Filtreleme İşlemleri ──────────────────────────────────────────
+ */
+export function applyDiseaseFilter(filterValue) {
+  if (!map) return;
+  const filter = filterValue === 'ALL' ? '' : filterValue.toUpperCase();
+
+  // 1. Markerları Filtrele
+  if (markerLayer) {
+    markerLayer.eachLayer(layer => {
+      if (layer instanceof L.Marker) {
+        const markerHastalik = layer.options.hastalik || '';
+        let match = !filter;
+        
+        if (filter === 'ŞAP') {
+          match = markerHastalik.startsWith('ŞAP');
+        } else if (filter) {
+          match = markerHastalik === filter;
+        }
+
+        if (match) {
+          layer.getElement()?.style.setProperty('display', 'block');
+        } else {
+          layer.getElement()?.style.setProperty('display', 'none');
+        }
+      }
+    });
   }
+
+  // 2. Poligonları Filtrele (GeoJSON)
+  if (geoLayer) {
+    geoLayer.setStyle(feature => {
+      const props = feature.properties;
+      if (!props.karantinaAktif || !props.karantina) return getMahalleStil(feature);
+      
+      const match = !filter || props.karantina.some(k => {
+        const h = k.hastalik?.toUpperCase() || '';
+        if (filter === 'ŞAP') return h.startsWith('ŞAP');
+        return h.includes(filter);
+      });
+
+      if (match) return getMahalleStil(feature);
+      return { fillColor: '#334155', fillOpacity: 0.1, color: '#475569', weight: 0.8, opacity: 0.6 };
+    });
+  }
+
+  // 3. Çemberleri Filtrele
+  if (zoneLayer) {
+    zoneLayer.eachLayer(layer => {
+      if (layer instanceof L.Circle) {
+        const circleHastalik = layer.options.hastalik || '';
+        let match = !filter;
+        
+        if (filter === 'ŞAP') {
+          match = circleHastalik.startsWith('ŞAP');
+        } else if (filter) {
+          match = circleHastalik === filter;
+        }
+
+        if (match) {
+          // Circle element her zaman style.display ile gizlenemez (SVG), ama leaflet'te setStyle ile opacity ayarlanabilir
+          layer.setStyle({ opacity: layer.options.opacity || 0.8, fillOpacity: layer.options.fillOpacity || 0.12 });
+        } else {
+          layer.setStyle({ opacity: 0, fillOpacity: 0 });
+        }
+      }
+    });
+  }
+}
+export function getMap() { return map; }
+
+export function toggleZones() {
+  if (!map || !zoneLayer) return false;
+  zonesVisible = !zonesVisible;
+  if (zonesVisible) zoneLayer.addTo(map);
+  else zoneLayer.remove();
   return zonesVisible;
 }
 
-export function getZonesVisible() { return zonesVisible; }
+export function getGeoLayers() { return geoLayer; }
 
-// Kullanıcı konumunu haritada göster
-export function showUserLocation(lat, lng) {
-  const icon = L.divIcon({
-    className: '',
-    html: `<div class="user-location-marker"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
-
-  if (userMarker) {
-    userMarker.setLatLng([lat, lng]);
-  } else {
-    userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(map);
+export function panToUser(lat, lng) {
+  if (map) {
+    map.setView([lat, lng], 15);
   }
 }
 
-export function panToUser(lat, lng) {
-  map.flyTo([lat, lng], Math.max(map.getZoom(), 13), { animate: true, duration: 1.2 });
+export function showUserLocation(lat, lng) {
+  if (!map) return;
+  if (userMarker) {
+    userMarker.setLatLng([lat, lng]);
+  } else {
+    userMarker = L.circleMarker([lat, lng], {
+      radius: 8,
+      fillColor: '#3b82f6',
+      fillOpacity: 1,
+      color: '#fff',
+      weight: 2
+    }).addTo(map);
+  }
 }
-
-export function getMap() { return map; }

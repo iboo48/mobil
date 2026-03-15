@@ -47,6 +47,23 @@ export async function loadAllData() {
 export function getHastaliklar() { return _hastaliklar?.kayitlar || []; }
 export function getKarantina() { return _karantina?.kayitlar || []; }
 export function getGeoJSON() { return _geoJSON; }
+
+// Benzersiz hastalık isimlerini döndür
+export function getUniqueDiseases() {
+  const hastaliklar = getHastaliklar();
+  const set = new Set();
+  hastaliklar.forEach(h => {
+    if (h.hastalik) {
+      let name = h.hastalik.trim().toUpperCase();
+      if (name.startsWith('ŞAP')) {
+        name = 'ŞAP';
+      }
+      set.add(name);
+    }
+  });
+  return Array.from(set).sort();
+}
+
 export function getGuncelleme() {
   const t = _karantina?.guncelleme;
   if (!t) return null;
