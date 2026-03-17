@@ -1,6 +1,5 @@
-/**
- * data.js - Veri yükleme ve işleme modülü
- */
+import { db } from './firebase-config.js';
+import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // Türkçe karakter normalizasyonu (ASCII karşılıklarına çevirme)
 export function normalizeTR(str) {
@@ -25,23 +24,112 @@ export function normalizeTR(str) {
 let _hastaliklar = null;
 let _karantina = null;
 let _geoJSON = null;
+let _eslesme = null;
 
-// Tüm veri dosyalarını yükle
+// Tüm veri dosyalarını yükle (Firebase'den)
 export async function loadAllData() {
   try {
-    const [h, k, g] = await Promise.all([
-      fetch('./data/hastaliklar.json').then(r => r.json()),
-      fetch('./data/karantina.json').then(r => r.json()),
-      fetch('./data/mahalleler_karantina.json').then(r => r.json()),
+    const [hSnapshot, kDoc, g, e] = await Promise.all([
+      getDocs(collection(db, "hastaliklar")),
+      getDoc(doc(db, "ayarlar", "karantina")),
+      fetch('./Mahalleler.json').then(r => r.json()),
+      fetch('./data/eslesme.json').then(r => r.json()).catch(() => ({ eslesmeler: {} })),
     ]);
-    _hastaliklar = h;
-    _karantina = k;
-    _geoJSON = g;
-    return { hastaliklar: h, karantina: k, geoJSON: g };
+
+    // Hastalıkları işle
+    const hastaliklarRecords = [];
+    hSnapshot.forEach(doc => {
+      hastaliklarRecords.push(doc.data());
+    });
+    _hastaliklar = { kayitlar: hastaliklarRecords };
+
+    // Karantina verisini işle
+    if (kDoc.exists()) {
+      _karantina = kDoc.data();
+    } else {
+      _karantina = { guncelleme: new Date().toISOString(), kayitlar: [] };
+    }
+    
+    // Eşleştirme tablosu anahtarlarını normalize et (MILAS|DEREKOY gibi)
+    const normalizedEslesme = {};
+    if (e && e.eslesmeler) {
+      Object.entries(e.eslesmeler).forEach(([key, val]) => {
+        normalizedEslesme[normalizeTR(key)] = val;
+      });
+    }
+    _eslesme = { eslesmeler: normalizedEslesme };
+    _geoJSON = processGeoJSON(g, _karantina.kayitlar, _eslesme.eslesmeler);
+    
+    return { hastaliklar: _hastaliklar, karantina: _karantina, geoJSON: _geoJSON };
   } catch (err) {
     console.error('Veri yukleme hatasi:', err);
     throw err;
   }
+}
+
+// GeoJSON verisi ile karantina verisini birleştir (Manuel eşleşmeleri dikkate alarak)
+function processGeoJSON(geo, karantinaList, manualMatches = {}) {
+  const aktifKarantinalar = karantinaList.filter(r => r.aktif);
+  
+  // 1. İsim bazlı eşleştirme için map oluştur
+  const karantinaByIsim = new Map();
+  // 2. KIMLIKNO (ID) bazlı eşleştirme için map oluştur (eslesme.json'dan)
+  const karantinaByID = new Map();
+
+  aktifKarantinalar.forEach(k => {
+    const ilceNorm = normalizeTR(k.ilce);
+    k.mahalleler.forEach(m => {
+      const mahalleNorm = normalizeTR(m);
+      const key = ilceNorm + '|' + mahalleNorm;
+      
+      // a) İsim bazlı kaydet
+      const mevcutIsim = karantinaByIsim.get(key) || [];
+      const kData = {
+        hastalik: k.hastalik,
+        kisitlamaTipi: k.kisitlamaTipi,
+        baslangicTarihi: k.baslangicTarihi
+      };
+      mevcutIsim.push(kData);
+      karantinaByIsim.set(key, mevcutIsim);
+
+      // b) Manuel eşleşme varsa ID bazlı kaydet
+      const manual = manualMatches[key];
+      if (manual && manual.eslesmeler) {
+        manual.eslesmeler.forEach(id => {
+          const mevcutID = karantinaByID.get(id) || [];
+          mevcutID.push(kData);
+          karantinaByID.set(id, mevcutID);
+        });
+      }
+    });
+  });
+
+  geo.features.forEach(f => {
+    const props = f.properties;
+    const adNorm = normalizeTR(props.AD);
+    const ilceNorm = normalizeTR(props.ILCEAD);
+    const key = ilceNorm + '|' + adNorm;
+    
+    // Önce ID bazlı bak (manuel eşleşme öncelikli)
+    let kisitlamalar = karantinaByID.get(props.KIMLIKNO) || [];
+    
+    // Eğer ID bazlı yoksa isim bazlı bak
+    if (kisitlamalar.length === 0) {
+      kisitlamalar = karantinaByIsim.get(key) || [];
+    }
+    
+    if (kisitlamalar.length > 0) {
+      f.properties.karantina = kisitlamalar;
+      f.properties.karantinaAktif = true;
+      f.properties.karantinaTipi = kisitlamalar.find(kx => kx.kisitlamaTipi.includes('Koruma')) ? 'koruma' : 'gozetime';
+    } else {
+      f.properties.karantinaAktif = false;
+      delete f.properties.karantina;
+      delete f.properties.karantinaTipi;
+    }
+  });
+
+  return geo;
 }
 
 export function getHastaliklar() { return _hastaliklar?.kayitlar || []; }

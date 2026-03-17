@@ -1,90 +1,366 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Veri Güncelleme – Hastalık Haritası</title>
+  <title>Veri Yönetimi – Muğla Tarım</title>
   <link rel="stylesheet" href="./css/style.css">
   <style>
-    body { overflow: auto; padding: 20px; max-width: 700px; margin: 0 auto; }
-    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-    .page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
-    .file-drop { border: 2px dashed var(--border-light); border-radius: var(--radius-sm); padding: 32px; text-align: center; cursor: pointer; transition: var(--transition); margin-bottom: 14px; }
-    .file-drop:hover, .file-drop.dragover { border-color: var(--accent); background: var(--accent-glow); }
-    .file-drop p { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-    .file-drop .icon { font-size: 36px; }
-    input[type="file"] { display: none; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; padding: 10px 18px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; width: 100%; justify-content: center; transition: var(--transition); }
-    .btn:hover { background: var(--accent-hover); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-danger { background: var(--danger); }
-    .log-area { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-size: 12px; color: var(--text-secondary); font-family: monospace; max-height: 200px; overflow-y: auto; white-space: pre-wrap; line-height: 1.6; margin-top: 12px; }
-    .status-ok { color: var(--success); }
-    .status-warn { color: var(--warning); }
-    .status-err { color: var(--danger); }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); text-decoration: none; font-size: 13px; margin-bottom: 20px; }
-    .back-link:hover { text-decoration: underline; }
-    .info-box { background: var(--info-bg); border: 1px solid rgba(6,182,212,0.3); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+    body {
+      overflow: auto;
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .file-drop {
+      border: 2px dashed var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 14px;
+    }
+
+    .file-drop:hover,
+    .file-drop.dragover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .file-drop p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .file-drop .icon {
+      font-size: 36px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      width: 100%;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .log-area {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .status-ok {
+      color: var(--success);
+    }
+
+    .status-err {
+      color: var(--danger);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .info-box {
+      background: var(--info-bg);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    /* Firebase UI */
+    #login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .login-card h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .login-input {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
   </style>
 </head>
+
 <body>
-  <a href="./index.html" class="back-link">← Haritaya Dön</a>
-  <h1 class="page-title">🔄 Veri Güncelleme</h1>
-  <p class="page-sub">Yeni Excel dosyalarını yükleyerek harita verilerini güncelleyin</p>
-
-  <div class="info-box">
-    ℹ️ <strong>Nasıl çalışır?</strong> XLS dosyalarını seçin, sistem JSON dosyalarına dönüştürür ve <code>data/</code> klasörüne indirir.
-    Ardından dosyaları projenin <code>data/</code> klasörüne kopyalayın ve uygulamayı yeniden açın.
+  <!-- Giriş Ekranı -->
+  <div id="login-overlay">
+    <div class="login-card">
+      <h2>🔐 Yönetici Girişi</h2>
+      <input type="email" id="login-email" class="login-input" placeholder="E-posta">
+      <input type="password" id="login-password" class="login-input" placeholder="Şifre">
+      <button class="btn" id="btn-login" onclick="login()">Giriş Yap</button>
+      <p id="login-error" class="status-err" style="margin-top:12px; font-size:12px; text-align:center;"></p>
+    </div>
   </div>
 
-  <!-- Hastalık_Arama.xls -->
-  <div class="card">
-    <h3>📋 Hastalık_Arama.xls</h3>
-    <div class="file-drop" id="drop-hastalik" onclick="document.getElementById('file-hastalik').click()">
-      <div class="icon">📂</div>
-      <p>Tıklayın veya buraya sürükleyin</p>
-      <p id="hastalik-fname" style="color:var(--accent);margin-top:4px"></p>
-      <input type="file" id="file-hastalik" accept=".xls,.xlsx">
+  <!-- Ana İçerik -->
+  <div id="admin-content" class="hidden">
+    <div class="user-info">
+      <span>Giriş yapıldı: <strong id="user-info-email">...</strong></span>
+      <button class="btn"
+        style="width:auto; padding:5px 10px; background:var(--bg-primary); border:1px solid var(--border)"
+        onclick="logout()">Çıkış Yap</button>
     </div>
-    <button class="btn" id="btn-convert-hastalik" disabled onclick="convertHastalik()">
-      ⚙️ Dönüştür → hastaliklar.json
-    </button>
-    <div class="log-area" id="log-hastalik">Dosya seçilmedi...</div>
-  </div>
 
-  <!-- KisitlamaMahalleAra.xls -->
-  <div class="card">
-    <h3>🚫 KisitlamaMahalleAra.xls</h3>
-    <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
-      Bu işlemden sonra hem <code>karantina.json</code> hem de harita poligonları için <code>mahalleler_karantina.json</code> güncellenmelidir.
-    </p>
-    <div class="file-drop" id="drop-karantina" onclick="document.getElementById('file-karantina').click()">
-      <div class="icon">📂</div>
-      <p>Tıklayın veya buraya sürükleyin</p>
-      <p id="karantina-fname" style="color:var(--accent);margin-top:4px"></p>
-      <input type="file" id="file-karantina" accept=".xls,.xlsx">
+    <a href="./index.html" class="back-link">← Haritaya Dön</a>
+    <h1 class="page-title">🔄 Veri Yönetimi (Firebase)</h1>
+    <p class="page-sub">Excel dosyalarını yükleyerek sistemi anında güncelleyin</p>
+
+    <div class="info-box">
+      ℹ️ <strong>Otomatik Güncelleme:</strong> Artık dosyaları manuel kopyalamanıza gerek yok.
+      Excel dosyasını yükleyip "Yükle" butonuna bastığınızda veriler anında tüm kullanıcılara ulaşır.
     </div>
-    <div style="display:flex;gap:10px">
-      <button class="btn" id="btn-convert-karantina" disabled onclick="convertKarantina()">
-        1. Dönüştür → karantina.json
+
+    <!-- Hastalık_Arama.xls -->
+    <div class="card">
+      <h3>📋 Hastalık Mihrakları (Hastalık_Arama.xls)</h3>
+      <div class="file-drop" id="drop-hastalik" onclick="document.getElementById('file-hastalik').click()">
+        <div class="icon">📍</div>
+        <p>Tıklayın veya buraya sürükleyin</p>
+        <p id="hastalik-fname" style="color:var(--accent);margin-top:4px"></p>
+        <input type="file" id="file-hastalik" accept=".xls,.xlsx">
+      </div>
+      <button class="btn" id="btn-convert-hastalik" disabled onclick="uploadHastalik()">
+        🚀 Firestore'a Yükle (hastaliklar)
       </button>
-      <button class="btn" id="btn-merge-geojson" disabled onclick="mergeGeoJSON()">
-        2. Güncelle → mahalleler_karantina.json
-      </button>
+      <div class="log-area" id="log-hastalik">Dosya seçilmedi...</div>
     </div>
-    <div class="log-area" id="log-karantina">Dosya seçilmedi...</div>
+
+    <!-- KisitlamaMahalleAra.xls -->
+    <div class="card">
+      <h3>🚫 Karantina Bölgeleri (KisitlamaMahalleAra.xls)</h3>
+      <div class="file-drop" id="drop-karantina" onclick="document.getElementById('file-karantina').click()">
+        <div class="icon">🛡️</div>
+        <p>Tıklayın veya buraya sürükleyin</p>
+        <p id="karantina-fname" style="color:var(--accent);margin-top:4px"></p>
+        <input type="file" id="file-karantina" accept=".xls,.xlsx">
+      </div>
+      <button class="btn" id="btn-convert-karantina" disabled onclick="uploadKarantina()">
+        🚀 Firestore'a Yükle (karantina)
+      </button>
+      <div class="log-area" id="log-karantina">Dosya seçilmedi...</div>
+    </div>
+
+    <!-- Duyuru Yönetimi -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
+        <h3 style="margin:0">📢 Duyuru Yönetimi</h3>
+        <!--
+        <button class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:var(--bg-primary); border:1px solid var(--border)" onclick="migrateDuyurular()">📦 Eski Duyuruları Buluta Aktar</button>
+      -->
+      </div>
+      <div id="dy-form"
+        style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px; padding:12px; background:var(--bg-primary); border-radius:var(--radius-sm); border:1px solid var(--border)">
+        <h4 id="dy-form-title" style="font-size:13px; margin-bottom:4px">Yeni Duyuru Ekle</h4>
+        <input id="dy-id" type="hidden">
+        <input id="dy-baslik" type="text" placeholder="Başlık *"
+          style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;outline:none">
+        <textarea id="dy-icerik" rows="3" placeholder="İçerik *"
+          style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <select id="dy-kategori"
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+            <option value="Genel">Genel</option>
+            <option value="Karantina">Karantina</option>
+            <option value="Destekleme">Destekleme</option>
+            <option value="Aşılama">Aşılama</option>
+          </select>
+          <select id="dy-oncelik"
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+            <option value="">Normal</option>
+            <option value="onemli">⚠️ Önemli</option>
+            <option value="acil">🚨 Acil</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input id="dy-tarih" type="date"
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+          <input id="dy-link" type="url" placeholder="Link (opsiyonel)"
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+        </div>
+        <div style="display:flex; gap:10px">
+          <button class="btn" onclick="saveDuyuru()" id="btn-dy-ekle" style="flex:2">➕ Sisteme Kaydet</button>
+          <button class="btn hidden" onclick="cancelEdit()" id="btn-dy-cancel"
+            style="flex:1; background:var(--bg-primary); border:1px solid var(--border)">Vazgeç</button>
+        </div>
+      </div>
+      <div id="dy-liste" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
   </div>
 
-  <!-- xlsx.js CDN -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script>
-    // ─── Yardımcı Fonksiyonlar ───────────────────────────────────
-    function excelDateToISO(serial) {
-      if (!serial || typeof serial !== 'number') return null;
-      const d = new Date(Math.round((serial - 25569) * 86400 * 1000));
-      return d.toISOString().split('T')[0];
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Giriş/Çıkış İşlemleri
+    window.login = async () => {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (err) { errEl.textContent = "Hata: Giriş başarısız."; console.error(err); }
+    };
+
+    window.logout = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById('login-overlay').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        document.getElementById('user-info-email').textContent = user.email;
+        loadDuyurular();
+      } else {
+        document.getElementById('login-overlay').classList.remove('hidden');
+        document.getElementById('admin-content').classList.add('hidden');
+      }
+    });
+
+    // Excel Tarih Yardımcısı (Sayı veya DD.MM.YYYY formatını destekler)
+    function excelDateToISO(val) {
+      if (!val) return null;
+      if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return d.toISOString().split('T')[0];
+      }
+      if (typeof val === 'string') {
+        const clean = val.split(' ')[0].trim();
+        const parts = clean.split('.');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        const dashParts = clean.split('-');
+        if (dashParts.length === 3) return clean;
+      }
+      return null;
     }
 
     function log(id, text, cls = '') {
@@ -93,58 +369,28 @@
       el.scrollTop = el.scrollHeight;
     }
 
-    function downloadJSON(data, filename) {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-    }
-
-    // ─── Dosya seçimi ─────────────────────────────────────────────
+    // Dosya Sürükle Bırak Ayarı
     function setupFileDrop(dropId, inputId, fnameId, btnId) {
       const drop = document.getElementById(dropId);
       const input = document.getElementById(inputId);
       const fname = document.getElementById(fnameId);
       const btn = document.getElementById(btnId);
 
-      input.addEventListener('change', () => {
-        if (input.files[0]) {
-          fname.textContent = input.files[0].name;
-          btn.disabled = false;
-        }
-      });
-
-      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+      input.addEventListener('change', () => { if (input.files[0]) { fname.textContent = input.files[0].name; btn.disabled = false; } });
+      drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('dragover'); });
       drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
-      drop.addEventListener('drop', e => {
-        e.preventDefault();
-        drop.classList.remove('dragover');
+      drop.addEventListener('drop', (e) => {
+        e.preventDefault(); drop.classList.remove('dragover');
         const file = e.dataTransfer.files[0];
-        if (file) {
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          input.files = dt.files;
-          fname.textContent = file.name;
-          btn.disabled = false;
-          if (btnId === 'btn-convert-karantina') document.getElementById('btn-merge-geojson').disabled = false;
-        }
-      });
-
-      input.addEventListener('change', () => {
-        if (input.files[0]) {
-          fname.textContent = input.files[0].name;
-          btn.disabled = false;
-          if (btnId === 'btn-convert-karantina') document.getElementById('btn-merge-geojson').disabled = false;
-        }
+        if (file) { input.files = e.dataTransfer.files; fname.textContent = file.name; btn.disabled = false; }
       });
     }
 
     setupFileDrop('drop-hastalik', 'file-hastalik', 'hastalik-fname', 'btn-convert-hastalik');
     setupFileDrop('drop-karantina', 'file-karantina', 'karantina-fname', 'btn-convert-karantina');
 
-    // ─── Hastalık_Arama Dönüştürme ────────────────────────────────
-    function convertHastalik() {
+    // Hastalık Yükleme
+    window.uploadHastalik = async () => {
       const file = document.getElementById('file-hastalik').files[0];
       if (!file) return;
       const logId = 'log-hastalik';
@@ -152,48 +398,47 @@
       log(logId, '📋 Okunuyor: ' + file.name);
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async (e) => {
         try {
           const wb = XLSX.read(e.target.result, { type: 'array' });
           const ws = wb.Sheets[wb.SheetNames[0]];
           const raw = XLSX.utils.sheet_to_json(ws);
-          log(logId, `✅ ${raw.length} satır okundu.`, 'status-ok');
 
-          const kayitlar = raw.map((row, i) => ({
-            id: i + 1,
+          const kayitlar = raw.map(row => ({
             bildirimNo: row['Bildirim No'] || '',
-            il: row['İl'] || '',
             ilce: row['İlçe'] || '',
             mahalle: row['Mahalle'] || '',
-            isletme: row['İşletme'] || '',
             tur: row['Tür'] || '',
             hastalik: row['Hastalık'] || '',
             durum: row['Durum'] || '',
             ihbarTarihi: excelDateToISO(row['İhbar Tarihi']),
             kordinasyonTarihi: excelDateToISO(row['Varış ve Kordon Tarihi']),
-            cikisTarihi: excelDateToISO(row['Çıkış Tarihi']),
-            onaylamaTarihi: excelDateToISO(row['Onaylama Tarihi']),
-            hastalikBitisTarihi: excelDateToISO(row['Hastalık Bitiş Tarihi']),
-            sonZiyaretTarihi: excelDateToISO(row['Son Ziyaret Tarihi']),
-            ziyaretSayisi: row['Ziyaret Sayısı'] || 0,
+            cikisTarihi: excelDateToISO(row['Çıkış Tarihi']) || excelDateToISO(row['Sönme Tarihi']) || excelDateToISO(row['Kordonun Kaldırılması Tarihi']) || null,
             enlem: row['Enlem (X)'] || null,
             boylam: row['Boylam (Y)'] || null,
           })).filter(r => r.enlem && r.boylam);
 
-          log(logId, `📍 ${kayitlar.length} koordinatlı kayıt (koordinatsızlar atlandı).`);
+          log(logId, `🔄 Firestore temizleniyor ve ${kayitlar.length} kayıt yükleniyor...`);
 
-          const json = { guncelleme: new Date().toISOString(), kayitlar };
-          downloadJSON(json, 'hastaliklar.json');
-          log(logId, '💾 hastaliklar.json indirildi! data/ klasörüne kopyalayın.', 'status-ok');
-        } catch (err) {
-          log(logId, '❌ Hata: ' + err.message, 'status-err');
-        }
+          const snapshot = await getDocs(collection(db, "hastaliklar"));
+          const batch = writeBatch(db);
+          snapshot.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+
+          for (let i = 0; i < kayitlar.length; i += 500) {
+            const upBatch = writeBatch(db);
+            kayitlar.slice(i, i + 500).forEach(d => upBatch.set(doc(collection(db, "hastaliklar")), d));
+            await upBatch.commit();
+          }
+
+          log(logId, '✅ Başarıyla yüklendi!', 'status-ok');
+        } catch (err) { log(logId, '❌ Hata: ' + err.message, 'status-err'); }
       };
       reader.readAsArrayBuffer(file);
-    }
+    };
 
-    // ─── KisitlamaMahalleAra Dönüştürme ──────────────────────────
-    function convertKarantina() {
+    // Karantina Yükleme
+    window.uploadKarantina = async () => {
       const file = document.getElementById('file-karantina').files[0];
       if (!file) return;
       const logId = 'log-karantina';
@@ -201,300 +446,137 @@
       log(logId, '📋 Okunuyor: ' + file.name);
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async (e) => {
         try {
           const wb = XLSX.read(e.target.result, { type: 'array' });
           const ws = wb.Sheets[wb.SheetNames[0]];
           const raw = XLSX.utils.sheet_to_json(ws);
-          log(logId, `✅ ${raw.length} satır okundu.`, 'status-ok');
 
-          const kayitlar = raw.map((row, i) => {
-            const mahalleBirlesik = row['Mahalle'] || '';
-            const mahalleler = mahalleBirlesik.split(',').map(m => m.trim()).filter(Boolean);
-            return {
-              id: i + 1,
-              il: row['İl'] || '',
-              ilce: row['İlçe'] || '',
-              mahalleler,
-              kisitlamaSebebi: row['Kısıtlama Sebebi'] || '',
-              kisitlamaTipi: row['Kısıtlama Tipi'] || '',
-              hastalik: row['Hastalık'] || '',
-              bildirimTarihi: excelDateToISO(row['Bildirim Tarihi']),
-              baslangicTarihi: excelDateToISO(row['Başlangıç Tarihi']),
-              bitisTarihi: excelDateToISO(row['Bitiş Tarihi']) || null,
-              aktif: !row['Bitiş Tarihi'],
-            };
-          }).filter(r => r.mahalleler.length > 0);
+          const kayitlar = raw.map(row => ({
+            ilce: row['İlçe'] || '',
+            mahalleler: (row['Mahalle'] || '').split(',').map(m => m.trim()).filter(Boolean),
+            kisitlamaTipi: row['Kısıtlama Tipi'] || '',
+            hastalik: row['Hastalık'] || '',
+            baslangicTarihi: excelDateToISO(row['Başlangıç Tarihi']),
+            bitisTarihi: excelDateToISO(row['Bitiş Tarihi']) || null,
+            aktif: !row['Bitiş Tarihi'],
+          })).filter(r => r.mahalleler.length > 0);
 
-          log(logId, `🗺️ ${kayitlar.length} kısıtlama kaydı.`);
-          const aktif = kayitlar.filter(r => r.aktif);
-          const topMahalle = aktif.reduce((s, r) => s + r.mahalleler.length, 0);
-          log(logId, `⚠️ ${aktif.length} aktif kısıtlama, toplam ${topMahalle} mahalle.`, 'status-warn');
-
-          const json = { guncelleme: new Date().toISOString(), kayitlar };
-          downloadJSON(json, 'karantina.json');
-          log(logId, '💾 karantina.json indirildi! data/ klasörüne kopyalayın.', 'status-ok');
-          log(logId, '\n⚠️ Önemli: mahalleler_karantina.json\'un da güncellenmesi için');
-          log(logId, '   sunucu tarafında node convert.js komutunu çalıştırın!', 'status-warn');
-        } catch (err) {
-          log(logId, '❌ Hata: ' + err.message, 'status-err');
-        }
+          log(logId, `🚀 Firestore'a ${kayitlar.length} kısıtlama kaydı yükleniyor...`);
+          await setDoc(doc(db, "ayarlar", "karantina"), { guncelleme: new Date().toISOString(), kayitlar });
+          log(logId, '✅ Karantina verisi güncellendi!', 'status-ok');
+        } catch (err) { log(logId, '❌ Hata: ' + err.message, 'status-err'); }
       };
       reader.readAsArrayBuffer(file);
-    }
+    };
 
-    async function mergeGeoJSON() {
-      const file = document.getElementById('file-karantina').files[0];
-      if (!file) return;
-      const logId = 'log-karantina';
-      log(logId, '\n🗺️ GeoJSON birleştirme başlatıldı...');
-
-      try {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-          const wb = XLSX.read(e.target.result, { type: 'array' });
-          const ws = wb.Sheets[wb.SheetNames[0]];
-          const raw = XLSX.utils.sheet_to_json(ws);
-          
-          const karantinaList = raw.map(row => {
-            const mahalleBirlesik = row['Mahalle'] || '';
-            const mahalleler = mahalleBirlesik.split(',').map(m => m.trim()).filter(Boolean);
-            return {
-              mahalleler,
-              ilce: row['İlçe'] || '',
-              kisitlamaTipi: row['Kısıtlama Tipi'] || '',
-              hastalik: row['Hastalık'] || '',
-              baslangicTarihi: excelDateToISO(row['Başlangıç Tarihi']),
-              bitisTarihi: excelDateToISO(row['Bitiş Tarihi']),
-              aktif: !row['Bitiş Tarihi']
-            };
-          }).filter(r => r.aktif);
-
-          // 2. Mahalleler.json ve eslesme.json'u yükle
-          log(logId, '📡 Veriler yükleniyor (Mahalleler.json & eslesme.json)...');
-          const [geoRes, eslesmeRes] = await Promise.all([
-            fetch('./Mahalleler.json'),
-            fetch('./data/eslesme.json').catch(() => null)
-          ]);
-          
-          const geo = await geoRes.json();
-          const eslesmeData = eslesmeRes ? await eslesmeRes.json() : { eslesmeler: {} };
-
-          // 3. Normalizasyon Fonksiyonu
-          const normalize = (s) => (s || '').toString().toUpperCase().trim()
-            .replace(/İ/g, 'I').replace(/Ğ/g, 'G').replace(/Ü/g, 'U')
-            .replace(/Ş/g, 'S').replace(/Ö/g, 'O').replace(/Ç/g, 'C');
-
-          // eslesme.json'u daha hızlı arama için normalize edilmiş anahtarlarla Map'e alalım
-          const normEslesmeMap = new Map();
-          if (eslesmeData.eslesmeler) {
-            Object.keys(eslesmeData.eslesmeler).forEach(rawKey => {
-              const parts = rawKey.split('|');
-              if (parts.length === 2) {
-                const normKey = normalize(parts[0]) + '|' + normalize(parts[1]);
-                normEslesmeMap.set(normKey, eslesmeData.eslesmeler[rawKey]);
-              }
-            });
-          }
-
-          // 4. Eşleştirme Hazırlığı (KIMLIKNO -> Kısıtlamalar)
-          const geoIdKısıtlamaMap = new Map();
-
-          karantinaList.forEach(k => {
-            const ilceNorm = normalize(k.ilce);
-            k.mahalleler.forEach(m => {
-              const mahalleNorm = normalize(m);
-              const key = ilceNorm + '|' + mahalleNorm;
-              
-              const manuel = normEslesmeMap.get(key);
-              if (manuel && manuel.eslesmeler && manuel.eslesmeler.length > 0) {
-                // Manuel eşleşen KIMLIKNO'lar için kısıtlamayı ekle
-                manuel.eslesmeler.forEach(id => {
-                  const mevcut = geoIdKısıtlamaMap.get(id) || [];
-                  mevcut.push({
-                    hastalik: k.hastalik,
-                    kisitlamaTipi: k.kisitlamaTipi,
-                    baslangicTarihi: k.baslangicTarihi
-                  });
-                  geoIdKısıtlamaMap.set(id, mevcut);
-                });
-              } else {
-                // Otomatik eşleştirme için (ileride kullanılabilir, şimdilik poligon döngüsünde bakılacak)
-              }
-            });
-          });
-
-          // 5. Poligonları İşaretle
-          let count = 0;
-          geo.features.forEach(f => {
-            const id = f.properties.KIMLIKNO;
-            const adNorm = normalize(f.properties.AD);
-            const ilceNorm = normalize(f.properties.ILCEAD);
-            
-            // a) Önce manuel eşleşmiş ID var mı bak
-            let kisitlamalar = geoIdKısıtlamaMap.get(id) || [];
-            
-            // b) Yoksa, doğrudan isim eşleşmesi var mı bak (Excel'den)
-            if (kisitlamalar.length === 0) {
-              const excelKisit = karantinaList.find(k => 
-                normalize(k.ilce) === ilceNorm && k.mahalleler.some(m => normalize(m) === adNorm)
-              );
-              if (excelKisit) {
-                kisitlamalar.push({
-                  hastalik: excelKisit.hastalik,
-                  kisitlamaTipi: excelKisit.kisitlamaTipi,
-                  baslangicTarihi: excelKisit.baslangicTarihi
-                });
-              }
-            }
-
-            if (kisitlamalar.length > 0) {
-          f.properties.karantina = kisitlamalar;
-              f.properties.karantinaAktif = true;
-              f.properties.karantinaTipi = kisitlamalar.find(kx => kx.kisitlamaTipi.includes('Koruma')) ? 'koruma' : 'gozetime';
-              count++;
-            } else {
-              f.properties.karantinaAktif = false;
-              delete f.properties.karantina;
-              delete f.properties.karantinaTipi;
-            }
-          });
-
-          log(logId, `✅ ${count} mahalle poligonu karantina olarak işaretlendi.`, 'status-ok');
-          downloadJSON(geo, 'mahalleler_karantina.json');
-          log(logId, '💾 mahalleler_karantina.json indirildi!', 'status-ok');
-        };
-        reader.readAsArrayBuffer(file);
-      } catch (err) {
-        log(logId, '❌ Hata: ' + err.message, 'status-err');
-      }
-    }
-  </script>
-
-  <!-- ─── Duyuru Yönetimi ─────────────────────────────────────── -->
-  <div class="card" style="margin-top:24px">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
-      <h3 style="margin:0">📢 Duyuru Yönetimi</h3>
-      <div style="display:flex; gap:8px">
-        <button class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:var(--bg-primary); border:1px solid var(--border)" onclick="duyurulariDosyadanYukle()">📂 Dosyadan Yükle</button>
-        <button class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:var(--success)" onclick="duyurulariIndir()">💾 JSON İndir</button>
-      </div>
-    </div>
-    
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
-      Duyurular yerel depolamaya (localStorage) kaydedilir. Mevcut verileri görmek için <b>'Dosyadan Yükle'</b> butonuna basın. Düzenleme bittikten sonra <b>'JSON İndir'</b> diyerek dosyayı kaydedin.
-    </p>
-
-    <!-- Yeni Duyuru Formu -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px; padding:12px; background:var(--bg-primary); border-radius:var(--radius-sm); border:1px solid var(--border)">
-      <h4 style="font-size:13px; margin-bottom:4px">Yeni Duyuru Ekle</h4>
-      <input id="dy-baslik" type="text" placeholder="Başlık *" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;outline:none">
-      <textarea id="dy-icerik" rows="3" placeholder="İçerik *" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <select id="dy-kategori" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
-          <option value="Genel">Genel</option>
-          <option value="Karantina">Karantina</option>
-          <option value="Destekleme">Destekleme</option>
-          <option value="Aşılama">Aşılama</option>
-          <option value="Duyuru">Duyuru</option>
-        </select>
-        <select id="dy-oncelik" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
-          <option value="">Normal</option>
-          <option value="onemli">⚠️ Önemli</option>
-          <option value="acil">🚨 Acil</option>
-        </select>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input id="dy-tarih" type="date" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
-        <input id="dy-link" type="url" placeholder="Link (opsiyonel)" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
-      </div>
-      <button class="btn" onclick="duyuruEkle()" id="btn-dy-ekle">➕ Listeye Ekle</button>
-    </div>
-
-    <!-- Mevcut Duyurular -->
-    <div id="dy-liste" style="display:flex;flex-direction:column;gap:8px"></div>
-  </div>
-
-  <script>
-    // Bugünün tarihini varsayılan olarak ayarla
-    document.getElementById('dy-tarih').value = new Date().toISOString().split('T')[0];
-
-    function getDuyurular() {
-      try { return JSON.parse(localStorage.getItem('duyurular') || '[]'); } catch { return []; }
-    }
-    function saveDuyurular(list) {
-      localStorage.setItem('duyurular', JSON.stringify(list));
-    }
-
-    async function duyurulariDosyadanYukle() {
-      if (getDuyurular().length > 0 && !confirm('Mevcut düzenlemeleriniz silinecek ve duyurular.json dosyasındaki veriler yüklenecek. Onaylıyor musunuz?')) return;
+    // Duyuru Yükleme (Eskiden JSON'daydı, şimdi Bulut'a aktarır)
+    window.migrateDuyurular = async () => {
+      if (!confirm('duyurular.json dosyasındaki veriler Firebase\'e eklenecek. Onaylıyor musunuz?')) return;
       try {
         const res = await fetch('./data/duyurular.json');
         const data = await res.json();
-        saveDuyurular(data);
-        renderDuyurular();
-        alert('Duyurular başarıyla yüklendi.');
-      } catch (e) {
-        alert('Hata: duyurular.json dosyası bulunamadı veya okunamadı.');
-      }
-    }
+        let count = 0;
+        for (const item of data) {
+          await addDoc(collection(db, "duyurular"), {
+            baslik: item.baslik,
+            icerik: item.icerik,
+            kategori: item.kategori || 'Genel',
+            oncelik: item.oncelik || '',
+            tarih: item.tarih || new Date().toISOString().split('T')[0],
+            link: item.link || ''
+          });
+          count++;
+        }
+        alert(`${count} duyuru başarıyla buluta aktarıldı.`);
+        loadDuyurular();
+      } catch (e) { alert('Hata: duyurular.json bulunamadı veya aktarılamadı.'); }
+    };
 
-    function duyurulariIndir() {
-      const data = getDuyurular();
-      if (data.length === 0) { alert('İndirilecek duyuru yok!'); return; }
-      downloadJSON(data, 'duyurular.json');
-    }
-
-    function renderDuyurular() {
-      const liste = document.getElementById('dy-liste');
-      const data = getDuyurular();
-      if (data.length === 0) {
-        liste.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0; text-align:center">Liste boş. Lütfen "Dosyadan Yükle" diyerek mevcut verileri çekin veya yeni ekleyin.</div>';
-        return;
-      }
-      liste.innerHTML = data.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).map(d=>`
-        <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;display:flex;gap:12px;align-items:flex-start">
-          <div style="flex:1">
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">${d.kategori} • ${d.tarih} ${d.oncelik==='acil'?'🚨':d.oncelik==='onemli'?'⚠️':''}</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${d.baslik}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${d.icerik.substring(0,100)}${d.icerik.length>100?'...':''}</div>
-          </div>
-          <button onclick="duyuruSil(${d.id})" style="background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;flex-shrink:0">🗑 Sil</button>
-        </div>
-      `).join('');
-    }
-
-    function duyuruEkle() {
+    // Duyuru Yönetimi
+    window.saveDuyuru = async () => {
+      const id = document.getElementById('dy-id').value;
       const baslik = document.getElementById('dy-baslik').value.trim();
       const icerik = document.getElementById('dy-icerik').value.trim();
-      if (!baslik || !icerik) { alert('Başlık ve içerik zorunludur!'); return; }
-      const data = getDuyurular();
-      const yeni = {
-        id: Date.now(),
-        baslik,
-        icerik,
+      if (!baslik || !icerik) return alert('Alanları doldurun!');
+
+      const data = {
+        baslik, icerik,
         kategori: document.getElementById('dy-kategori').value,
         oncelik: document.getElementById('dy-oncelik').value,
-        tarih: document.getElementById('dy-tarih').value,
+        tarih: document.getElementById('dy-tarih').value || new Date().toISOString().split('T')[0],
         link: document.getElementById('dy-link').value.trim()
       };
-      data.push(yeni);
-      saveDuyurular(data);
+
+      try {
+        if (id) {
+          await setDoc(doc(db, "duyurular", id), data);
+        } else {
+          await addDoc(collection(db, "duyurular"), data);
+        }
+        cancelEdit();
+        loadDuyurular();
+      } catch (e) { alert('Hata: ' + e.message); }
+    };
+
+    window.editDuyuru = (id, dataStr) => {
+      const data = JSON.parse(decodeURIComponent(dataStr));
+      document.getElementById('dy-id').value = id;
+      document.getElementById('dy-baslik').value = data.baslik;
+      document.getElementById('dy-icerik').value = data.icerik;
+      document.getElementById('dy-kategori').value = data.kategori || 'Genel';
+      document.getElementById('dy-oncelik').value = data.oncelik || '';
+      document.getElementById('dy-tarih').value = data.tarih;
+      document.getElementById('dy-link').value = data.link || '';
+
+      document.getElementById('dy-form-title').textContent = '📝 Duyuruyu Düzenle';
+      document.getElementById('btn-dy-ekle').textContent = '💾 Güncelle';
+      document.getElementById('btn-dy-cancel').classList.remove('hidden');
+      document.getElementById('dy-form').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.cancelEdit = () => {
+      document.getElementById('dy-id').value = '';
       document.getElementById('dy-baslik').value = '';
       document.getElementById('dy-icerik').value = '';
       document.getElementById('dy-link').value = '';
       document.getElementById('dy-tarih').value = new Date().toISOString().split('T')[0];
-      renderDuyurular();
+      document.getElementById('dy-form-title').textContent = 'Yeni Duyuru Ekle';
+      document.getElementById('btn-dy-ekle').textContent = '➕ Sisteme Kaydet';
+      document.getElementById('btn-dy-cancel').classList.add('hidden');
+    };
+
+    window.deleteDuyuru = async (id) => {
+      if (confirm('Silinsin mi?')) { await deleteDoc(doc(db, "duyurular", id)); loadDuyurular(); }
+    };
+
+    async function loadDuyurular() {
+      const list = document.getElementById('dy-liste');
+      list.innerHTML = 'Yükleniyor...';
+      try {
+        const q = query(collection(db, "duyurular"), orderBy("tarih", "desc"));
+        const snap = await getDocs(q);
+        list.innerHTML = snap.empty ? 'Duyuru yok.' : snap.docs.map(d => {
+          const data = d.data();
+          const dataStr = encodeURIComponent(JSON.stringify(data));
+          return `<div style="background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; display:flex; gap:12px; align-items:center">
+            <div style="flex:1">
+              <div style="font-size:10px; color:var(--text-muted)">${data.tarih} • ${data.kategori}</div>
+              <div style="font-size:13px; font-weight:600">${data.baslik}</div>
+            </div>
+            <div style="display:flex; gap:5px">
+              <button onclick="editDuyuru('${d.id}', '${dataStr}')" style="background:var(--accent-glow); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px">Düzenle</button>
+              <button onclick="deleteDuyuru('${d.id}')" style="background:#450a0a; border:none; color:#f87171; border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px">Sil</button>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = `<div class="status-err">Duyurular yüklenemedi: ${e.message}</div>`;
+      }
     }
 
-    function duyuruSil(id) {
-      if (!confirm('Bu duyuruyu silmek istediğinize emin misiniz?')) return;
-      saveDuyurular(getDuyurular().filter(d => d.id !== id));
-      renderDuyurular();
-    }
-
-    // Sayfa yüklenince mevcut duyuruları göster
-    renderDuyurular();
+    document.getElementById('dy-tarih').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
+
 </html>

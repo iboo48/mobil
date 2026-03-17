@@ -10,6 +10,7 @@ let zoneLayer = null;     // 3km/10km çember katmanı
 let zonesVisible = false; // çember görünüm durumu
 let userMarker = null;
 let selectedLayer = null;
+let activeFilter = ''; // Mevcut aktif filtre
 
 // Hastalık türlerine göre renk
 const HASTALIK_RENKLER = {
@@ -21,30 +22,36 @@ const HASTALIK_RENKLER = {
 
 // Hayvan türüne göre emoji ikonu
 const HAYVAN_IKONLARI = {
-  'SIĞIR':  { emoji: '🐄', label: 'Sığır' },
-  'KOYUN':  { emoji: '🐑', label: 'Koyun' },
-  'KEÇİ':   { emoji: '🐐', label: 'Keçi' },
-  'TAVUK':  { emoji: '🐓', label: 'Tavuk' },
-  'HINDI':  { emoji: '🦃', label: 'Hindi' },
-  'DEFAULT':{ emoji: '🦠', label: 'Diğer' },
+  'SIGIR':   { emoji: '🐄', label: 'Sığır' },
+  'KOYUN':   { emoji: '🐑', label: 'Koyun' },
+  'KECI':    { emoji: '🐐', label: 'Keçi' },
+  'TAVUK':   { emoji: '🐓', label: 'Tavuk' },
+  'HINDI':   { emoji: '🦃', label: 'Hindi' },
+  'AT':      { emoji: '🐎', label: 'At' },
+  'BALIK':   { emoji: '🐟', label: 'Balık' },
+  'ARICILIK':{ emoji: '🐝', label: 'Arıcılık' },
+  'DEFAULT': { emoji: '🦠', label: 'Diğer' },
 };
 
 function getHayvanIkon(tur) {
   const turNorm = normalizeTR(tur || '');
+  if (turNorm.includes('ARICILIK') || turNorm.includes('ARI ')) return HAYVAN_IKONLARI.ARICILIK;
+  
   for (const [key, val] of Object.entries(HAYVAN_IKONLARI)) {
-    if (key === 'DEFAULT') continue;
-    if (turNorm.includes(normalizeTR(key))) return val;
+    if (key === 'DEFAULT' || key === 'ARICILIK') continue;
+    if (turNorm.includes(key)) return val;
   }
   return HAYVAN_IKONLARI.DEFAULT;
 }
 
 // ISO tarihi dd/mm/yyyy formatına çevir
 function formatTarih(iso) {
-  if (!iso) return '-';
+  if (!iso) return 'Devam Ediyor';
   try {
     const [y, m, d] = String(iso).split('T')[0].split('-');
+    if (!y || !m || !d) return 'Devam Ediyor';
     return `${d}/${m}/${y}`;
-  } catch { return iso; }
+  } catch { return 'Devam Ediyor'; }
 }
 
 function getHastalikRenk(hastalik) {
@@ -57,36 +64,38 @@ function getHastalikRenk(hastalik) {
 // Mahalle poligon stili
 function getMahalleStil(feature) {
   const props = feature.properties;
-  if (props.karantinaAktif) {
-    if (props.karantinaTipi === 'koruma') {
-      return {
-        fillColor: '#ef4444',
-        fillOpacity: 0.35,
-        color: '#ef4444',
-        weight: 1.5,
-        opacity: 0.8,
-      };
-    } else {
-      return {
-        fillColor: '#f97316',
-        fillOpacity: 0.25,
-        color: '#f97316',
-        weight: 1.5,
-        opacity: 0.7,
-      };
-    }
+  
+  // Kısıtlama yoksa doğrudan pasif stil
+  if (!props.karantinaAktif || !props.karantina) {
+    return {
+      fillColor: '#334155', fillOpacity: 0.1, color: '#475569', weight: 0.8, opacity: 0.6
+    };
   }
-  return {
-    fillColor: '#334155',
-    fillOpacity: 0.1,
-    color: '#475569',
-    weight: 0.8,
-    opacity: 0.6,
-  };
+
+  // Filtre aktifse ve bu mahalle uymuyorsa pasif göster
+  if (activeFilter) {
+    const match = props.karantina.some(k => {
+      const h = (k.hastalik || '').toUpperCase();
+      if (activeFilter === 'ŞAP') return h.startsWith('ŞAP');
+      return h.includes(activeFilter);
+    });
+    if (!match) return { fillColor: '#334155', fillOpacity: 0.1, color: '#475569', weight: 0.8, opacity: 0.6 };
+  }
+
+  // Aktif kısıtlama stilleri
+  if (props.karantinaTipi === 'koruma') {
+    return { fillColor: '#ef4444', fillOpacity: 0.35, color: '#ef4444', weight: 1.5, opacity: 0.8 };
+  } else {
+    return { fillColor: '#f97316', fillOpacity: 0.25, color: '#f97316', weight: 1.5, opacity: 0.7 };
+  }
 }
 
 function getMahalleHoverStil(feature) {
   const base = getMahalleStil(feature);
+  // Eğer pasif stil döndüyse (filtrelenmiş veya kısıtlamasız), hover efektini sınırlı tut
+  if (base.fillColor === '#334155') {
+    return { ...base, fillOpacity: 0.25, weight: 1.5 };
+  }
   return { ...base, fillOpacity: base.fillOpacity + 0.2, weight: 2.5 };
 }
 
@@ -148,7 +157,8 @@ export function loadMahalleLayer(onMahalleClick) {
       });
       layer.on('mouseout', function() {
         if (selectedLayer !== this) {
-          geoLayer.resetStyle(this);
+          // resetStyle yerine doğrudan güncel stili uygula (filtreyi bozmamak için)
+          this.setStyle(getMahalleStil(feature));
         }
       });
 
@@ -171,7 +181,7 @@ export function loadMahalleLayer(onMahalleClick) {
 
         popup.on('remove', () => {
           if (selectedLayer) {
-            geoLayer.resetStyle(selectedLayer);
+            this.setStyle(getMahalleStil(feature));
             selectedLayer = null;
           }
         });
@@ -251,6 +261,7 @@ export function loadHastalikMarkers() {
 export function applyDiseaseFilter(filterValue) {
   if (!map) return { markerCount: 0, mahalleCount: 0 };
   const filter = filterValue === 'ALL' ? '' : filterValue.toUpperCase();
+  activeFilter = filter;
   
   let markerCount = 0;
   let mahalleCount = 0;
@@ -261,12 +272,8 @@ export function applyDiseaseFilter(filterValue) {
       if (layer instanceof L.Marker) {
         const markerHastalik = layer.options.hastalik || '';
         let match = !filter;
-        
-        if (filter === 'ŞAP') {
-          match = markerHastalik.startsWith('ŞAP');
-        } else if (filter) {
-          match = markerHastalik === filter;
-        }
+        if (filter === 'ŞAP') match = markerHastalik.startsWith('ŞAP');
+        else if (filter) match = markerHastalik === filter;
 
         if (match) {
           layer.getElement()?.style.setProperty('display', 'block');
@@ -278,23 +285,20 @@ export function applyDiseaseFilter(filterValue) {
     });
   }
 
-  // 2. Poligonları Filtrele (GeoJSON)
+  // 2. Poligonları Filtrele
   if (geoLayer) {
-    geoLayer.setStyle(feature => {
-      const props = feature.properties;
-      if (!props.karantinaAktif || !props.karantina) return getMahalleStil(feature);
-      
-      const match = !filter || props.karantina.some(k => {
-        const h = k.hastalik?.toUpperCase() || '';
-        if (filter === 'ŞAP') return h.startsWith('ŞAP');
-        return h.includes(filter);
-      });
-
-      if (match) {
-        mahalleCount++;
-        return getMahalleStil(feature);
+    geoLayer.setStyle(getMahalleStil);
+    // Sayım işlemi
+    geoLayer.eachLayer(layer => {
+      const props = layer.feature.properties;
+      if (props.karantinaAktif && props.karantina) {
+        const match = !filter || props.karantina.some(k => {
+          const h = (k.hastalik || '').toUpperCase();
+          if (filter === 'ŞAP') return h.startsWith('ŞAP');
+          return h.includes(filter);
+        });
+        if (match) mahalleCount++;
       }
-      return { fillColor: '#334155', fillOpacity: 0.1, color: '#475569', weight: 0.8, opacity: 0.6 };
     });
   }
 
@@ -304,19 +308,11 @@ export function applyDiseaseFilter(filterValue) {
       if (layer instanceof L.Circle) {
         const circleHastalik = layer.options.hastalik || '';
         let match = !filter;
+        if (filter === 'ŞAP') match = circleHastalik.startsWith('ŞAP');
+        else if (filter) match = circleHastalik === filter;
         
-        if (filter === 'ŞAP') {
-          match = circleHastalik.startsWith('ŞAP');
-        } else if (filter) {
-          match = circleHastalik === filter;
-        }
-
-        if (match) {
-          // Circle element her zaman style.display ile gizlenemez (SVG), ama leaflet'te setStyle ile opacity ayarlanabilir
-          layer.setStyle({ opacity: layer.options.opacity || 0.8, fillOpacity: layer.options.fillOpacity || 0.12 });
-        } else {
-          layer.setStyle({ opacity: 0, fillOpacity: 0 });
-        }
+        if (match) layer.setStyle({ opacity: layer.options.opacity || 0.8, fillOpacity: layer.options.fillOpacity || 0.12 });
+        else layer.setStyle({ opacity: 0, fillOpacity: 0 });
       }
     });
   }

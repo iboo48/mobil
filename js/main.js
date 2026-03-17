@@ -213,48 +213,50 @@ function initTabs() {
   }
 }
 
-// Duyuruları yükle
+import { db } from './firebase-config.js';
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Duyuruları yükle (Firebase'den)
 export async function loadDuyurular() {
   const container = document.getElementById('duyuru-list');
   if (!container) return;
 
-  const localData = localStorage.getItem('duyurular');
-  let duyurular = [];
+  try {
+    const q = query(collection(db, "duyurular"), orderBy("tarih", "desc"));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      container.innerHTML = `<div class="duyuru-bos">Henüz duyuru bulunmamaktadır.</div>`;
+      return;
+    }
 
-  if (localData) {
-    try { duyurular = JSON.parse(localData); } catch {}
-  }
+    const duyurular = [];
+    querySnapshot.forEach((doc) => {
+      duyurular.push({ id: doc.id, ...doc.data() });
+    });
 
-  if (duyurular.length === 0) {
-    try {
-      const resp = await fetch('./data/duyurular.json');
-      duyurular = await resp.json();
-    } catch {}
-  }
-
-  if (duyurular.length === 0) {
-    container.innerHTML = `<div class="duyuru-bos">Henüz duyuru bulunmamaktadır.</div>`;
-    return;
-  }
-
-  container.innerHTML = duyurular
-    .sort((a, b) => new Date(b.tarih) - new Date(a.tarih))
-    .map(d => `
-      <div class="duyuru-card ${d.oncelik || ''}">
-        <div class="duyuru-header">
-          <span class="duyuru-kategori">${d.kategori || 'Genel'}</span>
-          <span class="duyuru-tarih">${formatTarih(d.tarih)}</span>
+    container.innerHTML = duyurular
+      .map(d => `
+        <div class="duyuru-card ${d.oncelik || ''}">
+          <div class="duyuru-header">
+            <span class="duyuru-kategori">${d.kategori || 'Genel'}</span>
+            <span class="duyuru-tarih">${formatTarih(d.tarih)}</span>
+          </div>
+          <h3 class="duyuru-baslik">${d.baslik}</h3>
+          <p class="duyuru-icerik">${d.icerik}</p>
+          ${d.link ? `<a class="duyuru-link" href="${d.link}" target="_blank">➜ Devamını Oku</a>` : ''}
         </div>
-        <h3 class="duyuru-baslik">${d.baslik}</h3>
-        <p class="duyuru-icerik">${d.icerik}</p>
-        ${d.link ? `<a class="duyuru-link" href="${d.link}" target="_blank">➜ Devamını Oku</a>` : ''}
-      </div>
-    `).join('');
+      `).join('');
+  } catch (err) {
+    console.error('Duyuru yukleme hatasi:', err);
+    container.innerHTML = `<div class="duyuru-bos">Duyurular yüklenirken bir hata oluştu.</div>`;
+  }
 }
 
 function formatTarih(tarihStr) {
-  if (!tarihStr) return '';
+  if (!tarihStr) return 'Devam Ediyor';
   const d = new Date(tarihStr);
+  if (isNaN(d.getTime())) return 'Devam Ediyor';
   return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
